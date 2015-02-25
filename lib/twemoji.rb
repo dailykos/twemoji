@@ -1,3 +1,4 @@
+# encoding: UTF-8
 require "nokogiri"
 
 require "twemoji/version"
@@ -17,20 +18,18 @@ module Twemoji
   # @option options [String] (optional) :text
   # @option options [String] (optional) :code
   # @option options [String] (optional) :unicode
-  #
-  # @return [String] Emoji text or code.
-  def self.find_by(text: nil, code: nil, unicode: nil)
-    if [ text, code, unicode ].compact!.size > 1
+  def self.find_by(options={ text: nil, code: nil, unicode: nil })
+    if options.values.compact.size > 1
       fail ArgumentError, "Can only specify text, code or unicode one at a time"
     end
 
     case
-    when text
-      find_by_text text
-    when unicode
-      find_by_unicode unicode
+    when options[:text]
+      find_by_text options[:text]
+    when options[:unicode]
+      find_by_unicode options[:unicode]
     else
-      find_by_code code
+      find_by_code options[:code]
     end
   end
 
@@ -102,17 +101,20 @@ module Twemoji
   #
   # @return [String] Original text with all occurrences of emoji text
   # replaced by emoji image according to given options.
-  def self.parse(text, asset_root: "https://twemoji.maxcdn.com/",
-                       file_ext:   ".png",
-                       image_size: "16x16",
-                       class_name: "emoji",
-                       img_attr: nil)
+  def self.parse(text, parse_options={})
+    parse_options = {
+      asset_root: "https://twemoji.maxcdn.com/",
+      file_ext: ".png",
+      image_size: "16x16",
+      class_name: "emoji",
+      img_attr: nil
+    }.merge(parse_options)
 
-    options[:asset_root] = asset_root
-    options[:file_ext]   = file_ext
-    options[:image_size] = image_size
-    options[:class_name] = class_name
-    options[:img_attr]   = img_attr
+    options[:asset_root] = parse_options[:asset_root]
+    options[:file_ext]   = parse_options[:file_ext]
+    options[:image_size] = parse_options[:image_size]
+    options[:class_name] = parse_options[:class_name]
+    options[:img_attr]   = parse_options[:img_attr]
 
     if text.is_a?(Nokogiri::HTML::DocumentFragment)
       parse_document(text)
